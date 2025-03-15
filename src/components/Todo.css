@@ -73,7 +73,11 @@ li{
     color:orange;
 }
 
-#list-item{
+.list-items .list-item-list {
+    flex: 1;
+}
+
+.list-items .list-item-list.completed {
     text-decoration: line-through;
-    opacity: 0.3;
+    opacity: 0.5;
 }

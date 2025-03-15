@@ -1,123 +1,70 @@
-import React from "react";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import TodoForm from "./TodoForm";
+import TodoList from "./TodoList";
 import "./Todo.css";
-import { IoMdDoneAll } from "react-icons/io";
-import { FiEdit } from "react-icons/fi";
-import { MdDelete } from "react-icons/md";
 
-const Todo = () => {
+const TodoApp = () => {
   const [input, setInput] = useState("");
   const [todos, setTodos] = useState([]);
-  const inputRef = useRef("null");
-  const [editId , setEditId] = useState(0)
-
+  const [editId, setEditId] = useState(0);
+  const inputRef = useRef(null);
 
   useEffect(() => {
-    inputRef.current.focus();
-  });
+    inputRef.current?.focus();
+  }, [input]);
 
   const addTodo = () => {
-
-    if(input.trim()!==''){
-         setTodos([...todos, { list: input, id: Date.now(), status: false }]);
-         setInput("");
+    if (input.trim() !== "") {
+      if (editId) {
+        setTodos((prevTodos) =>
+          prevTodos.map((todo) =>
+            todo.id === editId ? { ...todo, list: input } : todo
+          )
+        );
+        setEditId(0);
+      } else {
+        setTodos([...todos, { list: input, id: Date.now(), status: false }]);
+      }
+      setInput("");
     }
-
-    if(editId){
-        const editTodo = todos.find((todo)=>todo.id === editId)
-        const updateTodo = todos.map((todo) => todo.id===editTodo.id 
-        ? (todo = {id : todo.id , list : input })
-        : (todo = {id:todo.id, list:todo.list}))
-
-        setTodos(updateTodo)
-        setEditId(0)
-        setInput('')
-
-    }
-
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onDelete = (id) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
   };
 
-  const onDelete = (id) =>{
+  const onComplete = (id) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, status: !todo.status } : todo
+      )
+    );
+  };
 
-    const updatedTodos = todos.filter((todo)=>todo.id !== id)
-    setTodos(updatedTodos)
-
-
-  }
-
-  const onComplete = (id) =>{
-
-    const completedTodos = todos.map((todo)=>{
-        if(todo.id === id){
-            return({...todo , status : !todo.status})
-        }
-        return todo
-    })
-
-    setTodos(completedTodos)
-  }
-
-  const onEdit = (id) =>{
-
-    const editTodo = todos.find((todo)=>(todo.id === id))
-    setInput(editTodo.list)
-    setEditId(editTodo.id)
-
-
-
-  }
+  const onEdit = (id) => {
+    const editTodo = todos.find((todo) => todo.id === id);
+    setInput(editTodo.list);
+    setEditId(editTodo.id);
+  };
 
   return (
     <div className="container">
       <h2>TODO LIST</h2>
-
-      <form className="form-group" onSubmit={handleSubmit}>
-        <input
-          value={input}
-          ref={inputRef}
-          type="text"
-          placeholder="Enter Your Todos"
-          className="form-control"
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <button onClick={addTodo}>{editId ? 'EDIT' : 'ADD'}</button>
-      </form>
-
-      <div className="list">
-        <ul>
-          {todos.map((todo) => (
-            <li className="list-items">
-              <div className="list-item-list" id={todo.status? 'list-item' : ''}>{todo.list}</div>
-
-              <span>
-                <IoMdDoneAll
-                  className="list-item-icons"
-                  id="complete"
-                  title="Complete"
-                  onClick={()=>(onComplete(todo.id))}
-                />
-                <FiEdit 
-                    className="list-item-icons" 
-                    id="edit"
-                    title="Edit"
-                    onClick={()=>(onEdit(todo.id))}/>
-                <MdDelete
-                  className="list-item-icons"
-                  id="delete"
-                  title="Delete"
-                  onClick={()=>(onDelete(todo.id))}
-                />
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <TodoForm
+        input={input}
+        setInput={setInput}
+        addTodo={addTodo}
+        editId={editId}
+        inputRef={inputRef}
+      />
+      <TodoList
+        todos={todos}
+        onComplete={onComplete}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
     </div>
   );
 };
 
-export default Todo;
+export default TodoApp;
